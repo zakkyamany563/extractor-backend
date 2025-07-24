@@ -352,7 +352,7 @@ app.post("/", upload.single("video"), async (req, res) => {
 
 
     } catch (error) {
-        console.error(JSON.stringify(error, null, 2));
+        console.error(error);
         return res.status(500).json({
             message: "Gagal upload",
             error: error.message || "Unknown error",
