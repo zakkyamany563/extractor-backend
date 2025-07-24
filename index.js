@@ -38,9 +38,20 @@ requiredDirs.forEach((dir) => {
     }
 });
 
+console.log("====================================================")
+console.log("                 DEBUG ENV")
+console.log("====================================================")
+console.table({
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
+    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
+    PORT: process.env.PORT
+})
+
 //config cloudinary
 cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_NAME,
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
@@ -468,7 +479,7 @@ async function audioGPT(audioPath) {
     form.append("model", "whisper-1")
     const response = await axios.post("https://api.openai.com/v1/audio/transcriptions", form, {
         headers: {
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         }
     })
     return response.data
