@@ -26,6 +26,18 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
 
+
+// Buat folder jika belum ada
+const requiredDirs = ["frames", "audio", "uploads"];
+requiredDirs.forEach((dir) => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+        console.log(`📁 Folder '${dir}' dibuat`);
+    } else {
+        console.log(`📁 Folder '${dir}' sudah ada`);
+    }
+});
+
 //config cloudinary
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
