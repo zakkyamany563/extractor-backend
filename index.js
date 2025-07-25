@@ -398,6 +398,52 @@ async function chatGPT(messages) {
 }
 //fungsi untuk membuat prompt dari riap section agar hasilnya sesuai
 
+function buildPrompt(segmentName, transcribeAudio, segmentFrames) {
+  return `
+You are reviewing a **promotional video segment for a small business (UMKM)** intended for social media portrait content (TikTok/Reels). Your main task is to ensure the segment is **relevant, clear, and genuinely serves as MSME (UMKM) promotional content.**
+
+Segment: "${segmentName}"
+Frames: ${segmentFrames.map((s) => s.url).join(", ")}
+Transcript: ${transcribeAudio}
+
+**VERY IMPORTANT:**
+- Only assess the following indicators if they logically apply to this segment. For example, only assess "Effective Call to Action" in the closing, and "Engaging Hook" in the opening.
+- **If the video segment is not clearly related to MSME/business promotion, or looks like a meme/random/irrelevant video (e.g. not featuring products/services, no rental context, not showing business activity, or is confusing/unrelated), set "value": false for all indicators, and give a recommendation to upload only relevant business promotional content.**
+- The content must clearly display MSME/business-related elements (e.g., products, services, business activity, or clear customer context).
+- Only set "value": true if there is strong evidence the indicator is present and fits a typical TikTok/Reels business promo.
+
+Assessment Indicators:
+- Engaging Hook (**only in opening**)
+- Effective Call to Action (**only in closing**)
+- Rental Activity Footage (**only in main**)
+- Trending Music (**whole video**)
+- Visual Clarity (**whole video**)
+- Proper Video Format (vertical, under 60s) (**whole video**)
+- Content Relevance (e.g., rental visuals, cars, customers) (**whole video**)
+- Local Context (e.g., local language, setting) (**whole video**)
+
+**Rules:**
+- Set "value": false by default if there is ANY DOUBT or if the segment is not promotional MSME content.
+- Set "value": true only if the indicator is clearly present, appropriate, and supports MSME/business promo.
+- Give clear, constructive, and positive recommendations if the video is generally good.
+- If the content is not MSME promotional, state this clearly in your recommendations and suggest to re-upload a business promotional video.
+
+Return ONLY a JSON object like this:
+{
+  "recommendations": [
+    {
+      "point": "string",
+      "example": "string"
+    }
+  ],
+  "assessmentIndicators": [
+    { "name": "<indicator_name>", "value": true/false },
+    ...
+  ]
+}
+`;
+}
+
 function buildSummaryPrompt(opening, setup, main, climax, closing, audio, frames) {
   return `
 You are given the assessment results of each video segment:
