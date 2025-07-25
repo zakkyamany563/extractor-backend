@@ -399,36 +399,37 @@ async function chatGPT(messages) {
 //fungsi untuk membuat prompt dari riap section agar hasilnya sesuai
 function buildPrompt(segmentName, transcribeAudio, segmentFrames) {
   return `
-You are reviewing a video segment for MSME/business promotion (for TikTok/Reels, portrait, <60s).
+You are reviewing a promotional video segment for a vehicle rental business, as if you were a typical TikTok or Reels viewer.
 
-Segment: "${segmentName}"
-Frames: ${segmentFrames.map((s) => s.url).join(", ")}
+Segment: "${segmentName}"  
+Frames: ${segmentFrames.map((s) => s.url).join(", ")}  
 Transcript: ${transcribeAudio}
 
-**ANALYSIS FLOW (STEP-BY-STEP):**
-1. **First, determine: Is this video segment clearly MSME/business promotional content?**  
-   - Examples: Shows business activity, product, service, mentions price, brand, contact, rental process, etc.
-   - If NOT promotional (e.g. meme, prank, random, viral irrelevant, not business at all), then:  
-      - All "assessmentIndicators": false  
-      - recommendations: [ "This video is NOT suitable for MSME/business promotion. Please upload a video related to MSME/business promotion." ]  
-      - END analysis here (do NOT proceed to further assessment).
-2. **If YES (it's business promotional):**  
-   - For each assessment indicator, set "value": true if the element is present (even if basic or imperfect).
-   - Do NOT penalize for quality/style—as long as the element is present, score is true.
-   - Only set "value": false if the element is totally absent.
-   - Provide recommendations only for missing components or positive suggestions (not negative if components already exist).
+Use the following assessment indicators — but ONLY assess the ones that apply to this specific segment.  
+**DO NOT assess indicators that do not logically belong in this segment. For example, only assess "Effective Call to Action" in the closing segment, and "Engaging Hook" in the opening segment.**
 
-**Assessment indicators:**  
+Assessment Indicators:
 - Engaging Hook (**only in opening**)
 - Effective Call to Action (**only in closing**)
 - Rental Activity Footage (**only in main**)
-- Trending Music (**whole video**)
+- Trending Music (**assess whole video**)
 - Visual Clarity (**whole video**)
 - Proper Video Format (vertical, under 60s) (**whole video**)
-- Content Relevance (shows rental, cars, customers, business visuals) (**whole video**)
-- Local Context (local language/setting) (**whole video**)
+- Content Relevance (e.g., rental visuals, cars, customers) (**whole video**)
+- Local Context (e.g., local language, setting) (**whole video**)
 
-**RESPONSE FORMAT (ONLY this JSON):**
+**IMPORTANT RULE:**
+If the segment shows content that is irrelevant (e.g., meme, generic unrelated humor, or not promoting an MSME or vehicle rental), then:
+- Set \`value: false\` for indicators like "Content Relevance", "Engaging Hook", or "Rental Activity Footage", depending on the segment.
+- Do not reward segments that show off-topic or distracting content even if edited well.
+
+**GENERAL RULES:**
+- Set "value": true by default unless there is clear evidence it is missing or poorly executed.
+- If unsure or partially present, still set to true.
+- Only use "value": false if it’s definitely absent or off-topic.
+- Be positive and constructive. For generally good videos, most values should be true — except when clearly irrelevant.
+
+Return ONLY a JSON object like this:
 {
   "recommendations": [
     {
@@ -460,17 +461,11 @@ ${audio}
 Frames from video:
 ${frames.join(", ")}
 
-**RULES:**
-- If video is NOT MSME/business/rental promo (e.g. meme/prank/random/viral unrelated):
-  - recommendations: [ "This video is NOT suitable for MSME/business promotion. Please upload a video related to MSME/business promotion." ]
-  - assessmentIndicators: all false
-  - summary: "This video is NOT suitable for MSME/business promotion. Please upload a business promotional video."
-- If video IS business/rental promo:
-  - Give a short, factual summary about the promo (e.g., "A video promoting car rental. Starts with a hook, shows rental activities, ends with a call to action.")
-  - Do NOT give negative feedback if required elements (CTA, hook, etc) are present, even if basic.
-  - recommendations: Only for missing elements or positive improvements.
+Do NOT summarize or re-assess the segments.  
+Instead, answer clearly: **"What is the video about, and what happens from beginning to end?"**  
+(e.g., "A video showcasing a car rental service. It begins with an exterior shot of the business, shows customers picking up cars, highlights the features, and ends with a CTA to book.")
 
-**RESPONSE FORMAT (ONLY this JSON):**
+Return ONLY a JSON object:
 {
   "recommendations": [string, ...],
   "assessmentIndicators": [
@@ -481,6 +476,7 @@ ${frames.join(", ")}
 }
 `;
 }
+
 
 
 
