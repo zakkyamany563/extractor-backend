@@ -399,43 +399,41 @@ async function chatGPT(messages) {
 //fungsi untuk membuat prompt dari riap section agar hasilnya sesuai
 function buildPrompt(segmentName, transcribeAudio, segmentFrames) {
   return `
-You are reviewing a promotional video segment for a vehicle rental business, as if you were a typical TikTok or Reels viewer.
+You are reviewing a **video segment** for a vehicle rental business (UMKM/MSME context), like a typical TikTok or Reels viewer.  
 
-Segment: "${segmentName}"  
+Segment name: "${segmentName}"  
 Frames: ${segmentFrames.map((s) => s.url).join(", ")}  
 Transcript: ${transcribeAudio}
 
-Use the following assessment indicators — but ONLY assess the ones that apply to this specific segment.  
-**DO NOT assess indicators that do not logically belong in this segment. For example, only assess "Effective Call to Action" in the closing segment, and "Engaging Hook" in the opening segment.**
+You must evaluate the segment using the following indicators.  
+**ONLY score the indicators that apply to the current segment. DO NOT assess irrelevant indicators (e.g., no CTA in "opening").**
 
 Assessment Indicators:
-- Engaging Hook (**only in opening**)
-- Effective Call to Action (**only in closing**)
-- Rental Activity Footage (**only in main**)
-- Trending Music (**assess whole video**)
+- Engaging Hook (**opening only**)
+- Effective Call to Action (**closing only**)
+- Rental Activity Footage (**main only**)
+- Trending Music (**whole video**)
 - Visual Clarity (**whole video**)
 - Proper Video Format (vertical, under 60s) (**whole video**)
-- Content Relevance (e.g., rental visuals, cars, customers) (**whole video**)
-- Local Context (e.g., local language, setting) (**whole video**)
+- Content Relevance (shows car rental visuals, MSME context) (**whole video**)
+- Local Context (uses local language or cultural cues) (**whole video**)
 
-**IMPORTANT RULE:**
-If the segment shows content that is irrelevant (e.g., meme, generic unrelated humor, or not promoting an MSME or vehicle rental), then:
-- Set \`value: false\` for indicators like "Content Relevance", "Engaging Hook", or "Rental Activity Footage", depending on the segment.
-- Do not reward segments that show off-topic or distracting content even if edited well.
+❗️**IMPORTANT: IF CONTENT IS IRRELEVANT**
+If the frames or transcript clearly show **off-topic or non-MSME content** (e.g., memes, jokes, random skits, content that does NOT promote rental, MSME, or car-related services):
+- Set \`value: false\` for "Content Relevance"
+- Also set \`value: false\` for "Rental Activity Footage" (if segment = main)
+- Optionally set \`value: false\` for "Engaging Hook" or "Call to Action" if the message is not aligned
+- Add a recommendation explaining that the content doesn't support business promotion
 
-**GENERAL RULES:**
-- Set "value": true by default unless there is clear evidence it is missing or poorly executed.
-- If unsure or partially present, still set to true.
-- Only use "value": false if it’s definitely absent or off-topic.
-- Be positive and constructive. For generally good videos, most values should be true — except when clearly irrelevant.
+✅ **General Evaluation Rules:**
+- By default, set "value": true — unless there's clear absence or off-topic content.
+- If unsure or ambiguous, still lean towards true.
+- But for meme/skit/random content: clearly mark relevant indicators as false.
 
-Return ONLY a JSON object like this:
+Return ONLY this JSON format:
 {
   "recommendations": [
-    {
-      "point": "string",
-      "example": "string"
-    }
+    { "point": "string", "example": "string" }
   ],
   "assessmentIndicators": [
     { "name": "<indicator_name>", "value": true/false },
@@ -445,27 +443,31 @@ Return ONLY a JSON object like this:
 `;
 }
 
+
 function buildSummaryPrompt(opening, setup, main, climax, closing, audio, frames) {
   return `
-You are given the assessment results of each video segment:
+You are given assessment results for a full video:
 
-Opening: ${JSON.stringify(opening)},  
-Setup: ${JSON.stringify(setup)},  
-Main: ${JSON.stringify(main)},  
-Climax: ${JSON.stringify(climax)},  
-Closing: ${JSON.stringify(closing)}
+- Opening: ${JSON.stringify(opening)}
+- Setup: ${JSON.stringify(setup)}
+- Main: ${JSON.stringify(main)}
+- Climax: ${JSON.stringify(climax)}
+- Closing: ${JSON.stringify(closing)}
 
-Full transcript of audio:
+This is the full transcript:
 ${audio}
 
-Frames from video:
+Frames from the video:
 ${frames.join(", ")}
 
-Do NOT summarize or re-assess the segments.  
-Instead, answer clearly: **"What is the video about, and what happens from beginning to end?"**  
-(e.g., "A video showcasing a car rental service. It begins with an exterior shot of the business, shows customers picking up cars, highlights the features, and ends with a CTA to book.")
+🎯 Your job is NOT to repeat the assessment or indicators.  
+Instead, write a concise summary answering:  
+**"What is this video actually about, from beginning to end?"**
 
-Return ONLY a JSON object:
+🛑 If the video clearly contains **non-rental or irrelevant content** (e.g., meme, skit, or joke unrelated to the business), your summary **MUST explicitly say** that the video does not promote a rental/MSME service.  
+❌ Do NOT claim it promotes rentals if the visuals don’t match.
+
+Return ONLY this JSON:
 {
   "recommendations": [string, ...],
   "assessmentIndicators": [
