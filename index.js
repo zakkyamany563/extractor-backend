@@ -398,52 +398,8 @@ async function chatGPT(messages) {
 }
 //fungsi untuk membuat prompt dari riap section agar hasilnya sesuai
 
-function buildPrompt(segmentName, transcribeAudio, segmentFrames) {
-    return `
-You are reviewing a promotional video segment for a vehicle rental business, as if you were a typical TikTok or Reels viewer.
-
-Segment: "${segmentName}"
-Frames: ${segmentFrames.map((s) => s.url).join(", ")}
-Transcript: ${transcribeAudio}
-
-Use the following assessment indicators — but ONLY assess the ones that apply to this specific segment.  
-**Do NOT assess indicators that do not logically belong in this segment. For example, only assess "Effective Call to Action" in the closing segment, and "Engaging Hook" in the opening segment.**
-
-Assessment Indicators:
-- Engaging Hook (**only in opening**)
-- Effective Call to Action (**only in closing**)
-- Rental Activity Footage (**only in main**)
-- Trending Music (**assess whole video**)
-- Visual Clarity (**whole video**)
-- Proper Video Format (vertical, under 60s) (**whole video**)
-- Content Relevance (e.g., rental visuals, cars, customers) (**whole video**)
-- Local Context (e.g., local language, setting) (**whole video**)
-
-**IMPORTANT:**
-- Set "value": true by default unless there is clear evidence it is missing or poorly executed.
-- If unsure or partially present, still set to true.
-- Only use "value": false if it’s definitely absent.
-- Be positive and constructive. Most values should be true in a generally good video.
-- this is an promotional video analyzer, if the video don't have any correlation with promotional content especially msme, please make it false.
-
-Return ONLY a JSON object like this:
-{
-  "recommendations": [
-    {
-      "point": "string",
-      "example": "string"
-    }
-  ],
-  "assessmentIndicators": [
-    { "name": "<indicator_name>", "value": true/false },
-    ...
-  ]
-}
-`;
-}
-
 function buildSummaryPrompt(opening, setup, main, climax, closing, audio, frames) {
-    return `
+  return `
 You are given the assessment results of each video segment:
 
 Opening: ${JSON.stringify(opening)},  
@@ -458,9 +414,10 @@ ${audio}
 Frames from video:
 ${frames.join(", ")}
 
-Do NOT summarize or re-assess the segments.  
-Instead, answer clearly: **"What is the video about, and what happens from beginning to end?"**  
-(e.g., "A video showcasing a car rental service. It begins with an exterior shot of the business, shows customers picking up cars, highlights the features, and ends with a CTA to book.")
+**IMPORTANT:**
+- Do NOT summarize or re-assess the segments.
+- If the video is not about MSME/business promotion (e.g., meme, irrelevant, confusing), state clearly in recommendations and summary that the video is NOT suitable for business promotion and recommend re-uploading appropriate content.
+- Otherwise, answer clearly: "What is the video about, and what happens from beginning to end?" (e.g., "A video showcasing a car rental service. It begins with an exterior shot of the business, shows customers picking up cars, highlights the features, and ends with a CTA to book.")
 
 Return ONLY a JSON object:
 {
@@ -473,6 +430,7 @@ Return ONLY a JSON object:
 }
 `;
 }
+
 
 
 //membuat fungsi untuk transcribe audio
