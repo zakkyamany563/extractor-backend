@@ -397,10 +397,9 @@ async function chatGPT(messages) {
     return response.data
 }
 //fungsi untuk membuat prompt dari riap section agar hasilnya sesuai
-
 function buildPrompt(segmentName, transcribeAudio, segmentFrames) {
   return `
-You are reviewing a **promotional video segment for a small business (UMKM)**, intended for TikTok/Reels (portrait, under 60s). Your goal is to help MSMEs improve their content by assessing it *fairly* as long as there is clear intent to promote a business (even if basic or imperfect).
+You are reviewing a **promotional video segment for an MSME (UMKM)**, intended for TikTok/Reels (portrait, <60s). Your role is to support MSME promotion, NOT to judge harshly.
 
 Segment: "${segmentName}"
 Frames: ${segmentFrames.map((s) => s.url).join(", ")}
@@ -413,15 +412,23 @@ Transcript: ${transcribeAudio}
 - Trending Music (**whole video**)
 - Visual Clarity (**whole video**)
 - Proper Video Format (vertical, under 60s) (**whole video**)
-- Content Relevance (shows rental, cars, customers, or relevant business visuals) (**whole video**)
-- Local Context (uses local language or relatable setting) (**whole video**)
+- Content Relevance (shows rental, cars, customers, business visuals) (**whole video**)
+- Local Context (local language/setting) (**whole video**)
 
-**IMPORTANT:**
-- By default, set "value": true if there is any sign the indicator is present (e.g., showing vehicles, mentioning prices, displaying a logo, using Indonesian language, etc.).
-- Only set "value": false if it’s obviously missing (e.g., meme, prank, random unrelated content, or no visible business element at all).
-- If the indicator is weak/unclear, prefer to set true and give constructive, encouraging feedback.
-- If the segment is *clearly NOT business-related* (random meme, prank, viral unrelated, or totally off-topic), set all indicators false and recommend uploading business promo content only.
-- Your job is to support small businesses, not to judge too harshly.
+**STRICT FILTER:**
+- If the segment is **NOT clearly MSME/business promotion** (e.g., meme, viral unrelated, prank, random, not featuring any product/service/rental context):  
+  - Set all assessmentIndicators "value": false  
+  - Give a summary: "This video is not suitable for MSME/business promotion. Please upload relevant business promotional content."
+  - Recommendations: Only suggest to upload content related to business/rental promotion.
+
+**FAIR EVALUATION:**
+- If the segment is related to MSME/business/rental promotion, and even just includes the basic elements (hook, call to action, business visuals, narration about rental, contact info, etc):  
+  - Set assessmentIndicators "value": true for indicators present, even if basic.
+  - Do NOT give negative recommendations if hook/CTA/etc is already present (even if not perfect).
+  - Only give positive, constructive suggestions to improve (if really needed).
+
+- Only set "value": false if a required indicator is completely absent, and give feedback constructively.
+- Do NOT penalize for simple or basic execution; your role is to encourage and support.
 
 Return ONLY a JSON object like this:
 {
@@ -455,9 +462,14 @@ ${audio}
 Frames from video:
 ${frames.join(", ")}
 
-- Do NOT summarize or re-assess the segments.
-- If the video is *clearly* not business promotion (meme, prank, or irrelevant), state clearly in recommendations and summary that the video is NOT suitable for business promotion and suggest re-uploading relevant content.
-- Otherwise, answer: "What is the video about, and what happens from beginning to end?" (e.g., "A video showcasing a car rental service. It begins with an exterior shot of the business, shows customers picking up cars, highlights the features, and ends with a CTA to book.")
+**IMPORTANT:**
+- If the video is *NOT related to MSME/business/rental promotion* (e.g., meme, prank, viral unrelated), then:
+  - recommendations: ["This video is not suitable for MSME/business promotion. Please upload relevant business promotional content."]
+  - assessmentIndicators: all "value": false
+  - summary: "This video is not suitable for MSME/business promotion. Please upload a business promotional video."
+- Otherwise (if related to business/rental promo, even if simple):
+  - Write a factual, concise summary: "A video promoting a car rental service. It starts with [describe briefly], highlights [rental/business activity], and ends with a call to action."
+  - Do NOT add negative comments if required elements are present (even if not perfect). Bare minimum is acceptable for positive evaluation.
 
 Return ONLY a JSON object:
 {
@@ -470,7 +482,6 @@ Return ONLY a JSON object:
 }
 `;
 }
-
 
 
 //membuat fungsi untuk transcribe audio
