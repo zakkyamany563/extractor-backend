@@ -424,6 +424,7 @@ Assessment Indicators:
 - If unsure or partially present, still set to true.
 - Only use "value": false if it’s definitely absent.
 - Be positive and constructive. Most values should be true in a generally good video.
+- this is an promotional video analyzer, if the video don't have any correlation with promotional content especially msme, please make it false.
 
 Return ONLY a JSON object like this:
 {
