@@ -400,33 +400,28 @@ async function chatGPT(messages) {
 
 function buildPrompt(segmentName, transcribeAudio, segmentFrames) {
   return `
-You are reviewing a **promotional video segment for a small business (UMKM)** intended for social media portrait content (TikTok/Reels). Your main task is to ensure the segment is **relevant, clear, and genuinely serves as MSME (UMKM) promotional content.**
+You are reviewing a **promotional video segment for a small business (UMKM)**, intended for TikTok/Reels (portrait, under 60s). Your goal is to help MSMEs improve their content by assessing it *fairly* as long as there is clear intent to promote a business (even if basic or imperfect).
 
 Segment: "${segmentName}"
 Frames: ${segmentFrames.map((s) => s.url).join(", ")}
 Transcript: ${transcribeAudio}
 
-**VERY IMPORTANT:**
-- Only assess the following indicators if they logically apply to this segment. For example, only assess "Effective Call to Action" in the closing, and "Engaging Hook" in the opening.
-- **If the video segment is not clearly related to MSME/business promotion, or looks like a meme/random/irrelevant video (e.g. not featuring products/services, no rental context, not showing business activity, or is confusing/unrelated), set "value": false for all indicators, and give a recommendation to upload only relevant business promotional content.**
-- The content must clearly display MSME/business-related elements (e.g., products, services, business activity, or clear customer context).
-- Only set "value": true if there is strong evidence the indicator is present and fits a typical TikTok/Reels business promo.
-
-Assessment Indicators:
+**Assessment indicators:**  
 - Engaging Hook (**only in opening**)
 - Effective Call to Action (**only in closing**)
 - Rental Activity Footage (**only in main**)
 - Trending Music (**whole video**)
 - Visual Clarity (**whole video**)
 - Proper Video Format (vertical, under 60s) (**whole video**)
-- Content Relevance (e.g., rental visuals, cars, customers) (**whole video**)
-- Local Context (e.g., local language, setting) (**whole video**)
+- Content Relevance (shows rental, cars, customers, or relevant business visuals) (**whole video**)
+- Local Context (uses local language or relatable setting) (**whole video**)
 
-**Rules:**
-- Set "value": false by default if there is ANY DOUBT or if the segment is not promotional MSME content.
-- Set "value": true only if the indicator is clearly present, appropriate, and supports MSME/business promo.
-- Give clear, constructive, and positive recommendations if the video is generally good.
-- If the content is not MSME promotional, state this clearly in your recommendations and suggest to re-upload a business promotional video.
+**IMPORTANT:**
+- By default, set "value": true if there is any sign the indicator is present (e.g., showing vehicles, mentioning prices, displaying a logo, using Indonesian language, etc.).
+- Only set "value": false if it’s obviously missing (e.g., meme, prank, random unrelated content, or no visible business element at all).
+- If the indicator is weak/unclear, prefer to set true and give constructive, encouraging feedback.
+- If the segment is *clearly NOT business-related* (random meme, prank, viral unrelated, or totally off-topic), set all indicators false and recommend uploading business promo content only.
+- Your job is to support small businesses, not to judge too harshly.
 
 Return ONLY a JSON object like this:
 {
@@ -460,10 +455,9 @@ ${audio}
 Frames from video:
 ${frames.join(", ")}
 
-**IMPORTANT:**
 - Do NOT summarize or re-assess the segments.
-- If the video is not about MSME/business promotion (e.g., meme, irrelevant, confusing), state clearly in recommendations and summary that the video is NOT suitable for business promotion and recommend re-uploading appropriate content.
-- Otherwise, answer clearly: "What is the video about, and what happens from beginning to end?" (e.g., "A video showcasing a car rental service. It begins with an exterior shot of the business, shows customers picking up cars, highlights the features, and ends with a CTA to book.")
+- If the video is *clearly* not business promotion (meme, prank, or irrelevant), state clearly in recommendations and summary that the video is NOT suitable for business promotion and suggest re-uploading relevant content.
+- Otherwise, answer: "What is the video about, and what happens from beginning to end?" (e.g., "A video showcasing a car rental service. It begins with an exterior shot of the business, shows customers picking up cars, highlights the features, and ends with a CTA to book.")
 
 Return ONLY a JSON object:
 {
